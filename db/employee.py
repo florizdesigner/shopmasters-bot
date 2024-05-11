@@ -1,5 +1,6 @@
 import logging
 from db.db_helpers import db_connect as __db_connect__
+from models.Employee import Employee
 
 
 class EmployeeController:
@@ -42,20 +43,13 @@ class EmployeeController:
             db_connection = __db_connect__()
             cursor = db_connection.cursor()
 
-            query_keys = ""
-            query_values = ""
+            user = Employee.from_dict(user).to_dict()
 
-            # TODO(): Сделать перебор ключей и значений, для формирования готового выражения
-
-            for key in user:
-                if (bool(user[key])):
-                    print(key, user[key])
-
-            # print(bool(user.get("first_name")))
-
-            # cursor.execute("INSERT INTO employees VALUES ()")
-
-            # db_connection.commit()
+            logging.info(msg=f"Request to add user: {user}")
+            cursor.execute(f"INSERT INTO employees (first_name, last_name, telegram_id, telegram_username, is_fulltime, work_group, type_of_fulltime_shifts, is_absence) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                           (user["first_name"], user['last_name'], user['telegram_id'], user['telegram_username'], user['is_fulltime'], user['work_group'], user['type_of_fulltime_shifts'], user['is_absence']))
+            db_connection.commit()
+            logging.info(msg="User successfully added!")
         except Exception as e:
             db_connection.rollback()
             logging.error(msg=e)
@@ -63,18 +57,21 @@ class EmployeeController:
             cursor.close()
             db_connection.close()
 
-    def edit_employee(self, id: int, first_name: str = None, last_name: str = None, ):
+    def edit_employee(self, id: int, params: object):
         try:
             db_connection = __db_connect__()
             cursor = db_connection.cursor()
 
-            def ggg(param):
-                if bool(param):
-                    res = {}
-                    res[param] = 0
-                    print(res[param])
+            cursor.execute(f"select * from employees where id = {id}")
+            employee = Employee(*cursor.fetchone()[1:])
+            print(employee)
 
-            ggg("first_name")
+            # TODO(): Прогнать каждый переданный параметр и заменить на новые данные в Employee
+
+            for parameter in params:
+
+                print(parameter, params[parameter])
+
             # cursor.execute(f"UPDATE employees SET first_name = {bool(first_name) if 'first_name' = first_name}")
 
         except Exception as e:
