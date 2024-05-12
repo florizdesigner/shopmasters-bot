@@ -1,12 +1,16 @@
 import logging
 from db.db_helpers import db_connect as __db_connect__
 from models.DBResponse import DBResponse
-from models.Employee import Employee
+from models.Employee import EmployeeRequest, EmployeeResponse
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class EmployeeController:
-    # настройка формата логирования
-    logging.basicConfig(filename="../logs/employees.log", filemode="w", format="[%(asctime)s] | [%(levelname)s] | %(message)s", level="INFO")
+    # configuring the logging format
+
+    logging.basicConfig(filename=f"{os.getenv('PROJECT_PATH')}/logs/employees.log", filemode="w", format="[%(asctime)s] | [%(levelname)s] | %(message)s", level="INFO")
 
     def get_all_employees(self):
         try:
@@ -19,6 +23,7 @@ class EmployeeController:
             return response
         except Exception as e:
             logging.error(msg=e)
+            return DBResponse(status="error", message=str(e))
         finally:
             cursor.close()
             db_connection.close()
@@ -35,29 +40,34 @@ class EmployeeController:
             return response
         except Exception as e:
             logging.error(msg=e)
+            return DBResponse(status="error", message=str(e))
         finally:
             cursor.close()
             db_connection.close()
 
-    def add_employee(self, user: object):
+    def add_employee(self, user: object) -> DBResponse:
         try:
             db_connection = __db_connect__()
             cursor = db_connection.cursor()
 
-            user = Employee.from_dict(user).to_dict()
+            user = EmployeeRequest.from_dict(user).to_dict()
 
             logging.info(msg=f"Request to add user: {user}")
             cursor.execute(f"INSERT INTO employees (first_name, last_name, telegram_id, telegram_username, is_fulltime, work_group, type_of_fulltime_shifts, is_absence) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                            (user["first_name"], user['last_name'], user['telegram_id'], user['telegram_username'], user['is_fulltime'], user['work_group'], user['type_of_fulltime_shifts'], user['is_absence']))
             db_connection.commit()
 
-            added_user = cursor.execute(f"SELECT * FROM employees WHERE telegram_id = {user.telegram_id}").fetchone()
+            # TODO(): This is don't work!
+            get_employee = cursor.execute("SELECT * FROM employees WHERE telegram_username = {telegram_username}".format(telegram_username=user['telegram_username']))
+            added_user = EmployeeResponse(*get_employee.fetchone())
+
             response = DBResponse(status="success", message="User successfully added", employee=added_user).to_dict()
 
             return response
         except Exception as e:
             db_connection.rollback()
             logging.error(msg=e)
+            return DBResponse(status="error", message=str(e))
         finally:
             cursor.close()
             db_connection.close()
@@ -69,7 +79,8 @@ class EmployeeController:
             cursor = db_connection.cursor()
 
             cursor.execute(f"select * from employees where id = {id}")
-            employee = Employee(*cursor.fetchone()[1:]).to_dict()
+            # без 1 элемента (id), тк данные уходят дальше в запрос
+            employee = EmployeeResponse(cursor.fetchone()[1:]).to_dict()
 
             for parameter in params:
                 employee[parameter] = params[parameter]
@@ -88,13 +99,14 @@ class EmployeeController:
             db_connection.commit()
 
             cursor.execute(f"select * from employees where id = {id}")
-            updated_employee = Employee(*cursor.fetchone()[1:]).to_dict()
+            updated_employee = EmployeeResponse(cursor.fetchone())
             response = DBResponse(status="success", message="User successfull edited", employee=updated_employee).to_dict()
 
             return response
         except Exception as e:
             db_connection.rollback()
             logging.error(msg=e)
+            return DBResponse(status="error", message=str(e))
         finally:
             cursor.close()
             db_connection.close()
@@ -114,6 +126,7 @@ class EmployeeController:
         except Exception as e:
             db_connection.rollback()
             logging.error(msg=e)
+            return DBResponse(status="error", message=str(e))
         finally:
             cursor.close()
             db_connection.close()

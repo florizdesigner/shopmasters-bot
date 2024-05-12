@@ -1,9 +1,12 @@
 import psycopg2
 import os
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # настройка формата логирования
-logging.basicConfig(filename="../logs/employees.log", filemode="w", format="[%(asctime)s] | [%(levelname)s] | %(message)s", level="INFO")
+logging.basicConfig(filename=f"{os.getenv('PROJECT_PATH')}/logs/employees.log", filemode="w", format="[%(asctime)s] | [%(levelname)s] | %(message)s", level="INFO")
 
 def db_connect():
     try:

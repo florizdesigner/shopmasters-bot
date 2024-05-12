@@ -1,3 +1,2 @@
-testdata = {'first_name': 'Мистер', 'last_name': 'Васильев', 'telegram_id': 343434333, 'telegram_username': 'testtelegramusername123', 'is_fulltime': True, 'work_group': 3, 'type_of_fulltime_shifts': 1, 'is_absence': False}
-
-print(tuple(testdata.values()))
+inv = {'first_name': 'Auto', 'last_name': 'Testov', 'telegram_id': 123123000, 'telegram_username': 'autotest_1', 'is_fulltime': True, 'work_group': 1, 'type_of_fulltime_shifts': 2, 'is_absence': False}
+print(inv['telegram_id'])
