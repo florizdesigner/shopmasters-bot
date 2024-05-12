@@ -3,7 +3,7 @@ import os
 import logging
 
 # настройка формата логирования
-logging.basicConfig(filename="../logs/employees_controller.log", filemode="w", format="[%(asctime)s] | [%(levelname)s] | %(message)s", level="INFO")
+logging.basicConfig(filename="../logs/employees.log", filemode="w", format="[%(asctime)s] | [%(levelname)s] | %(message)s", level="INFO")
 
 def db_connect():
     try:
